@@ -2,6 +2,7 @@ package dao
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/BentoBoxSchool/web"
 )
@@ -122,9 +123,88 @@ func (s *SchoolDAOImpl) GetSchool(id int) (*web.School, error) {
 
 	return school, nil
 }
-func (s *SchoolDAOImpl) Create(school web.School) error {
-	return nil
+func (s *SchoolDAOImpl) Create(school web.School) (int64, error) {
+	var err error
+
+	if school.ID != 0 {
+		return 0, fmt.Errorf("received school value with id=%d. cannot create entry with non-zero id value", school.ID)
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		tx.Commit()
+	}()
+
+	result, err := s.db.Exec(`
+		INSERT INTO schools (name, description, link)
+		VALUES ('?', '?', '?')
+	`, school.Name, school.Description, school.Link)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	for _, dd := range school.Data {
+		_, err = s.db.Exec(`
+			INSERT INTO donation_detail (school_id, grade, account_name, balance)
+			VALUES (?, '?', '?', ?)
+		`, id, dd.Grade, dd.AccountName, dd.Balance)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return id, nil
 }
-func (s *SchoolDAOImpl) Edit(id int, school web.School) error {
+func (s *SchoolDAOImpl) Update(school web.School) error {
+	var err error
+
+	if school.ID == 0 {
+		return fmt.Errorf("received school value with id=%d. cannot create entry with zero id value", school.ID)
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		tx.Commit()
+	}()
+
+	_, err = s.db.Exec(`
+		UPDATE schools (name, description, link)
+		VALUES ('?', '?', '?')
+		WHERE id=?
+	`, school.Name, school.Description, school.Link, school.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, dd := range school.Data {
+		_, err = s.db.Exec(`
+			UPDATE donation_detail (school_id, grade, account_name, balance)
+			VALUES (?, '?', '?', ?)
+			WHERE id=?
+		`, school.ID, dd.Grade, dd.AccountName, dd.Balance, dd.ID)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

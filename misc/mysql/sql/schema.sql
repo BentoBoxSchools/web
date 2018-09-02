@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS school (
-    id INT(9) UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT(9) UNSIGNED NOT NULL AUTO_INCREMENT, # TODO: Make sure this starts at a non-zero value
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     link VARCHAR(255) NOT NULL,
@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS school (
 );
 
 CREATE TABLE IF NOT EXISTS donation_detail (
-    id INT(9) UNSIGNED NOT NULL AUTO_INCREMENT,
-    school_id VARCHAR(255) NOT NULL,
+    id INT(9) UNSIGNED NOT NULL AUTO_INCREMENT, # TODO: Make sure this starts at a non-zero value
+    school_id INT(9) NOT NULL,
     grade VARCHAR(255) NOT NULL,
     account_name VARCHAR(255) NOT NULL,
     balance DECIMAL(13,2) NOT NULL,
