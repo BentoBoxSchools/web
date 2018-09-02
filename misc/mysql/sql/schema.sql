@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS school (
 
 CREATE TABLE IF NOT EXISTS donation_detail (
     id INT(9) UNSIGNED NOT NULL AUTO_INCREMENT,
-    school VARCHAR(255) NOT NULL,
+    school_id VARCHAR(255) NOT NULL,
     grade VARCHAR(255) NOT NULL,
     account_name VARCHAR(255) NOT NULL,
     balance DECIMAL(13,2) NOT NULL,

@@ -12,7 +12,7 @@ type School struct {
 // DonationDetail represents individual donation detail (account, balance)
 type DonationDetail struct {
 	ID          int
-	School      string
+	School      string // Is this needed?
 	Grade       string
 	AccountName string
 	Balance     float64
