@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS donation_detail (
     school_id INT(9) NOT NULL,
     grade VARCHAR(255) NOT NULL,
     account_name VARCHAR(255) NOT NULL,
-    balance DECIMAL(13,2) NOT NULL,
+    -- balance DECIMAL(13,2) NOT NULL,  # Temporarily using VARCHAR
+    balance VARCHAR(255) NOT NULL,
     CONSTRAINT donation_detail_pk PRIMARY KEY(id)
 );

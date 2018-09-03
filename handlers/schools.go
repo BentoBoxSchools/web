@@ -7,8 +7,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/BentoBoxSchool/web"
 	"github.com/pkg/errors"
@@ -114,8 +112,11 @@ func HandleCSVUpload() http.HandlerFunc {
 				fmt.Println("Row contains less than 4 columns", line)
 				continue
 			}
-			lineWithoutSpecialCharacters := strings.Replace(line[4], "$", "", -1)
-			balance, err := strconv.ParseFloat(lineWithoutSpecialCharacters, 64)
+
+			// TODO: Switch back to a proper type for balances instead of string
+			// lineWithoutSpecialCharacters := strings.Replace(line[4], "$", "", -1)
+			// balance, err := strconv.ParseFloat(lineWithoutSpecialCharacters, 64)
+
 			if err != nil {
 				fmt.Println("Failed to parse balance on fourth column. Skipping", err)
 				continue
@@ -125,7 +126,7 @@ func HandleCSVUpload() http.HandlerFunc {
 				School:      line[1],
 				Grade:       line[2],
 				AccountName: line[3],
-				Balance:     balance,
+				Balance:     line[4],
 			})
 		}
 		js, err := json.Marshal(donationDetails)

@@ -38,7 +38,7 @@ func (s *SchoolDAOImpl) GetSchools() ([]*web.School, error) {
 			ddId          sql.NullInt64
 			ddGrade       sql.NullString
 			ddAccountName sql.NullString
-			ddBalance     sql.NullFloat64
+			ddBalance     sql.NullString
 		)
 
 		if err := rows.Scan(&sId, &sName, &sDescription, &sLink, &ddId, &ddGrade, &ddAccountName, &ddBalance); err != nil {
@@ -60,7 +60,7 @@ func (s *SchoolDAOImpl) GetSchools() ([]*web.School, error) {
 			ID:          ddId.Int64,
 			Grade:       ddGrade.String,
 			AccountName: ddAccountName.String,
-			Balance:     ddBalance.Float64,
+			Balance:     ddBalance.String,
 		}
 
 		school.Data = append(school.Data, dd)
@@ -95,7 +95,7 @@ func (s *SchoolDAOImpl) GetSchool(id int64) (*web.School, error) {
 			ddId          sql.NullInt64
 			ddGrade       sql.NullString
 			ddAccountName sql.NullString
-			ddBalance     sql.NullFloat64
+			ddBalance     sql.NullString
 		)
 
 		if err := rows.Scan(&sId, &sName, &sDescription, &sLink, &ddId, &ddGrade, &ddAccountName, &ddBalance); err != nil {
@@ -115,7 +115,7 @@ func (s *SchoolDAOImpl) GetSchool(id int64) (*web.School, error) {
 			ID:          ddId.Int64,
 			Grade:       ddGrade.String,
 			AccountName: ddAccountName.String,
-			Balance:     ddBalance.Float64,
+			Balance:     ddBalance.String,
 		}
 
 		school.Data = append(school.Data, dd)

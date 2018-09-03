@@ -11,11 +11,12 @@ type School struct {
 
 // DonationDetail represents individual donation detail (account, balance)
 type DonationDetail struct {
-	ID          int64   `json:"id"`
-	School      string  `json:"school"` // Is this needed? Eric: Yes, we need to differeniate between high school and middle school under district
-	Grade       string  `json:"grade"`
-	AccountName string  `json:"accountName"`
-	Balance     float64 `json:"balance"`
+	ID          int64  `json:"id"`
+	School      string `json:"school"` // Is this needed? Eric: Yes, we need to differeniate between high school and middle school under district
+	Grade       string `json:"grade"`
+	AccountName string `json:"accountName"`
+	Balance     string `json:"balance"`
+	// Balance     float64 `json:"balance"`	// Temporarily using string
 }
 
 // SchoolDAO represents common business behavior to retrieve schools
