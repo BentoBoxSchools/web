@@ -20,8 +20,8 @@ type DonationDetail struct {
 
 // SchoolDAO represents common business behavior to retrieve schools
 type SchoolDAO interface {
-	GetSchools() (error, []School)
-	GetSchool(id int) (error, School)
-	Create(s School) error
-	Edit(id int, s School) error
+	GetSchools() ([]*School, error)
+	GetSchool(id int64) (*School, error)
+	Create(s School) (int64, error)
+	Edit(id int64, s School) error
 }

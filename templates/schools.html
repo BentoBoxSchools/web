@@ -1,0 +1,9 @@
+{{define "body"}}
+    <div class="container">
+        {{range $id, school := range .Schools}}
+            {{school.Name}}
+        {{end}}
+    </div>
+{{end}}
+{{define "scripts"}}
+{{end}}

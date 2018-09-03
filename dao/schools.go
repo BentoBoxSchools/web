@@ -73,7 +73,7 @@ func (s *SchoolDAOImpl) GetSchools() ([]*web.School, error) {
 
 	return out, nil
 }
-func (s *SchoolDAOImpl) GetSchool(id int) (*web.School, error) {
+func (s *SchoolDAOImpl) GetSchool(id int64) (*web.School, error) {
 	rows, err := s.db.Query(`
 		SELECT s.id, s.name, s.description, s.link, dd.id, dd.grade, dd.account_name, dd.balance
 		FROM school AS s
@@ -206,5 +206,9 @@ func (s *SchoolDAOImpl) Update(school web.School) error {
 		}
 	}
 
+	return nil
+}
+
+func (s *SchoolDAOImpl) Edit(id int64, school web.School) error {
 	return nil
 }
