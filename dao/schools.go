@@ -35,10 +35,10 @@ func (s *SchoolDAOImpl) GetSchools() ([]*web.School, error) {
 			sName         string
 			sDescription  string
 			sLink         string
-			ddId          int64
-			ddGrade       string
-			ddAccountName string
-			ddBalance     float64
+			ddId          sql.NullInt64
+			ddGrade       sql.NullString
+			ddAccountName sql.NullString
+			ddBalance     sql.NullFloat64
 		)
 
 		if err := rows.Scan(&sId, &sName, &sDescription, &sLink, &ddId, &ddGrade, &ddAccountName, &ddBalance); err != nil {
@@ -57,10 +57,10 @@ func (s *SchoolDAOImpl) GetSchools() ([]*web.School, error) {
 		}
 
 		dd := web.DonationDetail{
-			ID:          ddId,
-			Grade:       ddGrade,
-			AccountName: ddAccountName,
-			Balance:     ddBalance,
+			ID:          ddId.Int64,
+			Grade:       ddGrade.String,
+			AccountName: ddAccountName.String,
+			Balance:     ddBalance.Float64,
 		}
 
 		school.Data = append(school.Data, dd)
@@ -92,10 +92,10 @@ func (s *SchoolDAOImpl) GetSchool(id int64) (*web.School, error) {
 			sName         string
 			sDescription  string
 			sLink         string
-			ddId          int64
-			ddGrade       string
-			ddAccountName string
-			ddBalance     float64
+			ddId          sql.NullInt64
+			ddGrade       sql.NullString
+			ddAccountName sql.NullString
+			ddBalance     sql.NullFloat64
 		)
 
 		if err := rows.Scan(&sId, &sName, &sDescription, &sLink, &ddId, &ddGrade, &ddAccountName, &ddBalance); err != nil {
@@ -112,10 +112,10 @@ func (s *SchoolDAOImpl) GetSchool(id int64) (*web.School, error) {
 		}
 
 		dd := web.DonationDetail{
-			ID:          ddId,
-			Grade:       ddGrade,
-			AccountName: ddAccountName,
-			Balance:     ddBalance,
+			ID:          ddId.Int64,
+			Grade:       ddGrade.String,
+			AccountName: ddAccountName.String,
+			Balance:     ddBalance.Float64,
 		}
 
 		school.Data = append(school.Data, dd)
@@ -142,10 +142,15 @@ func (s *SchoolDAOImpl) Create(school web.School) (int64, error) {
 		tx.Commit()
 	}()
 
-	result, err := s.db.Exec(`
-		INSERT INTO schools (name, description, link)
-		VALUES ('?', '?', '?')
-	`, school.Name, school.Description, school.Link)
+	stmt, err := s.db.Prepare(`
+		INSERT INTO school(name, description, link)
+		VALUES(?, ?, ?)
+	`)
+	if err != nil {
+		return 0, err
+	}
+
+	result, err := stmt.Exec(school.Name, school.Description, school.Link)
 	if err != nil {
 		return 0, err
 	}
@@ -155,11 +160,16 @@ func (s *SchoolDAOImpl) Create(school web.School) (int64, error) {
 		return 0, err
 	}
 
+	stmt, err = s.db.Prepare(`
+		INSERT INTO donation_detail (school_id, grade, account_name, balance)
+		VALUES (?, ?, ?, ?)
+	`)
+	if err != nil {
+		return 0, err
+	}
+
 	for _, dd := range school.Data {
-		_, err = s.db.Exec(`
-			INSERT INTO donation_detail (school_id, grade, account_name, balance)
-			VALUES (?, '?', '?', ?)
-		`, id, dd.Grade, dd.AccountName, dd.Balance)
+		_, err = stmt.Exec(id, dd.Grade, dd.AccountName, dd.Balance)
 		if err != nil {
 			return 0, err
 		}
@@ -186,24 +196,31 @@ func (s *SchoolDAOImpl) Update(school web.School) error {
 		tx.Commit()
 	}()
 
-	_, err = s.db.Exec(`
-		UPDATE schools (name, description, link)
-		VALUES ('?', '?', '?')
+	stmt, err := s.db.Prepare(`
+		UPDATE school(name, description, link)
+		VALUES(?, ?, ?)
 		WHERE id=?
-	`, school.Name, school.Description, school.Link, school.ID)
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(school.Name, school.Description, school.Link, school.ID)
 	if err != nil {
 		return err
 	}
 
 	for _, dd := range school.Data {
-		_, err = s.db.Exec(`
-			UPDATE donation_detail (school_id, grade, account_name, balance)
-			VALUES (?, '?', '?', ?)
+		stmt, err := s.db.Prepare(`
+			UPDATE donation_detail(school_id, grade, account_name, balance)
+			VALUES(?, ?, ?, ?)
 			WHERE id=?
-		`, school.ID, dd.Grade, dd.AccountName, dd.Balance, dd.ID)
+		`)
 		if err != nil {
 			return err
 		}
+
+		_, err = stmt.Exec(school.ID, dd.Grade, dd.AccountName, dd.Balance, dd.ID)
 	}
 
 	return nil

@@ -89,6 +89,7 @@ func HandleCSVUpload() http.HandlerFunc {
 			return
 		}
 		defer f.Close()
+
 		reader := csv.NewReader(f)
 		record, err := reader.ReadAll()
 		if err != nil {
@@ -100,6 +101,7 @@ func HandleCSVUpload() http.HandlerFunc {
 			fmt.Println("Error handling CSV file upload:", err)
 			return
 		}
+
 		donationDetails := []web.DonationDetail{}
 		for i, line := range record {
 			if i == 0 {
@@ -153,9 +155,10 @@ func HandleCreateSchool(dao web.SchoolDAO) http.HandlerFunc {
 			)
 			return
 		}
+
 		// call dao.CreateSchool
 		_, err = dao.Create(s)
-		if err == nil {
+		if err != nil {
 			fmt.Println("Failed to create new school", err)
 			http.Error(
 				w,
