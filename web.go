@@ -2,20 +2,20 @@ package web
 
 // School represents individual school needing donations
 type School struct {
-	ID          int
-	Name        string
-	Description string
-	Link        string
-	Data        []DonationDetail
+	ID          int64            `json:"id"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Link        string           `json:"link"`
+	Data        []DonationDetail `json:"data"`
 }
 
 // DonationDetail represents individual donation detail (account, balance)
 type DonationDetail struct {
-	ID          int
-	School      string // Is this needed?
-	Grade       string
-	AccountName string
-	Balance     float64
+	ID          int64   `json:"id"`
+	School      string  `json:"school"` // Is this needed? Eric: Yes, we need to differeniate between high school and middle school under district
+	Grade       string  `json:"grade"`
+	AccountName string  `json:"accountName"`
+	Balance     float64 `json:"balance"`
 }
 
 // SchoolDAO represents common business behavior to retrieve schools

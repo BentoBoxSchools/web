@@ -1,7 +1,27 @@
 {{define "body"}}
     <div class="container">
         {{range $id, $school := .Schools}}
-            {{$school.Name}}
+            <section class="card">
+                <div class="card__header">
+                    <h2>
+                        {{$school.Name}}
+                    </h2>
+                    <div class="subhead">
+                        {{len $school.Data}} Students
+                    </div>
+                </div>
+                <div class="card__content">
+                    {{$school.Description}}
+                </div>
+                <div class="card__actions">
+                    <a href="/schools/{{$school.ID}}">
+                        Detail
+                    </a>
+                    <a href="{{$school.Link}}">
+                        Donate
+                    </a>
+                </div>
+            </section>
         {{end}}
     </div>
 {{end}}

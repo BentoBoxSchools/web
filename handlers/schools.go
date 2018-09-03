@@ -1,38 +1,18 @@
 package handlers
 
 import (
-	"database/sql"
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/BentoBoxSchool/web"
 	"github.com/pkg/errors"
 )
-
-// Hello says hello
-func Hello() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, BentoBox Server!")
-	})
-}
-
-// CheckHealth returns the healthcheck for the critical resources
-func CheckHealth(sqlDB *sql.DB) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := sqlDB.Ping(); err != nil {
-			http.Error(
-				w,
-				errors.Wrap(err, "MySQL failed").Error(),
-				http.StatusInternalServerError,
-			)
-			return
-		}
-
-		fmt.Fprintln(w, "Healthy")
-	})
-}
 
 // Assets serves the static assets (js & css)
 func Assets() http.Handler {
@@ -78,34 +58,10 @@ func RenderSchools(dao web.SchoolDAO) http.HandlerFunc {
 		if err != nil {
 			panic(err)
 		}
+		fmt.Println(schools)
 		t.ExecuteTemplate(w, "base", schoolListingDTO{
 			Schools: schools,
 		})
-	})
-}
-
-// RenderLogin renders the login page
-func RenderLogin() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t, err := template.ParseFiles("./templates/login.html", "./templates/base.html")
-		if err != nil {
-			panic(err)
-		}
-		t.ExecuteTemplate(w, "base", nil)
-	})
-}
-
-// HandleLogin accept Google auth login information
-func HandleLogin() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: handle login and store user info into session?
-	})
-}
-
-// HandleLogout invalidates the login session
-func HandleLogout() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: handle login and store user info into session?
 	})
 }
 
@@ -117,6 +73,97 @@ func RenderCreateSchool() http.HandlerFunc {
 			panic(err)
 		}
 		t.ExecuteTemplate(w, "base", nil)
+	})
+}
+
+// HandleCSVUpload parses CSV and return JSON of the student loan detail
+func HandleCSVUpload() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f, _, err := r.FormFile("file")
+		if err != nil {
+			http.Error(
+				w,
+				errors.Wrap(err, "Failed to parse file uploaded").Error(),
+				http.StatusInternalServerError,
+			)
+			return
+		}
+		defer f.Close()
+		reader := csv.NewReader(f)
+		record, err := reader.ReadAll()
+		if err != nil {
+			http.Error(
+				w,
+				"Failed to read CSV file uploaded",
+				http.StatusInternalServerError,
+			)
+			fmt.Println("Error handling CSV file upload:", err)
+			return
+		}
+		donationDetails := []web.DonationDetail{}
+		for i, line := range record {
+			if i == 0 {
+				// skip header
+				continue
+			}
+			if len(line) < 5 {
+				// skip any corrupted data row
+				// TODO: maybe handle error better?
+				fmt.Println("Row contains less than 4 columns", line)
+				continue
+			}
+			lineWithoutSpecialCharacters := strings.Replace(line[4], "$", "", -1)
+			balance, err := strconv.ParseFloat(lineWithoutSpecialCharacters, 64)
+			if err != nil {
+				fmt.Println("Failed to parse balance on fourth column. Skipping", err)
+				continue
+			}
+			donationDetails = append(donationDetails, web.DonationDetail{
+				ID:          0, // bad magic number, I know!
+				School:      line[1],
+				Grade:       line[2],
+				AccountName: line[3],
+				Balance:     balance,
+			})
+		}
+		js, err := json.Marshal(donationDetails)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+	})
+}
+
+// HandleCreateSchool creates school from the request form body
+func HandleCreateSchool(dao web.SchoolDAO) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// parse JSON
+		decoder := json.NewDecoder(r.Body)
+		var s web.School
+		err := decoder.Decode(&s)
+		if err != nil {
+			fmt.Println("Failed to parse JSON from request", err)
+			http.Error(
+				w,
+				"Failed to parse JSON from request body",
+				http.StatusBadRequest,
+			)
+			return
+		}
+		// call dao.CreateSchool
+		_, err = dao.Create(s)
+		if err == nil {
+			fmt.Println("Failed to create new school", err)
+			http.Error(
+				w,
+				"Failed to create new school",
+				http.StatusInternalServerError,
+			)
+			return
+		}
 	})
 }
 
@@ -139,22 +186,6 @@ func RenderEditSchool(dao web.SchoolDAO) http.HandlerFunc {
 			panic(err)
 		}
 		t.ExecuteTemplate(w, "base", nil)
-	})
-}
-
-// HandleCSVUpload parses CSV and return JSON of the student loan detail
-func HandleCSVUpload() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: parse CSV from body and return JSON representation of CSV
-	})
-}
-
-// HandleCreateSchool creates school from the request form body
-func HandleCreateSchool(dao web.SchoolDAO) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// parse form
-		// call dao.CreateSchool
-		// return 200 or 500
 	})
 }
 

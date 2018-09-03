@@ -18,6 +18,7 @@ var (
 	dbUsername = os.Getenv("DB_USERNAME")
 	dbPassword = os.Getenv("DB_PASSWORD")
 	dbHost     = os.Getenv("DB_HOST")
+	dbName     = os.Getenv("DB_NAME")
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 
 	// authentication & authorization
 	r.HandleFunc("/login", handlers.RenderLogin()).Methods("GET")
-	r.HandleFunc("/login", handlers.HnadleLogin()).Methods("POST")
+	r.HandleFunc("/login", handlers.HandleLogin()).Methods("POST")
 	r.HandleFunc("/logout", handlers.HandleLogout()).Methods("POST")
 
 	// schools
@@ -44,9 +45,9 @@ func main() {
 	r.HandleFunc("/schools/create", handlers.RenderCreateSchool()).Methods("GET")
 	r.HandleFunc("/schools/{id}", handlers.RenderSchool(schoolDAO)).Methods("GET")
 	r.HandleFunc("/schools/edit/{id}", handlers.RenderEditSchool(schoolDAO)).Methods("GET")
-	r.HandleFunc("/api/csv/parse", handlers.HandleCSVUpload()).Methods("POST")
 	r.HandleFunc("/schools/create", handlers.HandleCreateSchool(schoolDAO)).Methods("POST")
 	r.HandleFunc("/schools/edit/{id}", handlers.RenderHomepage(schoolDAO)).Methods("POST")
+	r.HandleFunc("/api/csv/donation", handlers.HandleCSVUpload()).Methods("POST")
 
 	log.Printf("Running web server at port %s\n", port)
 	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
@@ -57,12 +58,13 @@ func getDB() *sql.DB {
 	defaultPort := "3306"
 
 	sqlDSN := fmt.Sprintf(
-		"%s:%s@%s(%s:%s)/",
+		"%s:%s@%s(%s:%s)/%s",
 		dbUsername,
 		dbPassword,
 		defaultProtocol,
 		dbHost,
 		defaultPort,
+		dbName,
 	)
 
 	db, err := sql.Open("mysql", sqlDSN)

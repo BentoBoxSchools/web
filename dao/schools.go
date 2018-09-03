@@ -28,14 +28,14 @@ func (s *SchoolDAOImpl) GetSchools() ([]*web.School, error) {
 		return []*web.School{}, err
 	}
 
-	m := make(map[int]*web.School)
+	m := make(map[int64]*web.School)
 	for rows.Next() {
 		var (
-			sId           int
+			sId           int64
 			sName         string
 			sDescription  string
 			sLink         string
-			ddId          int
+			ddId          int64
 			ddGrade       string
 			ddAccountName string
 			ddBalance     float64
@@ -88,11 +88,11 @@ func (s *SchoolDAOImpl) GetSchool(id int64) (*web.School, error) {
 	var school *web.School
 	for rows.Next() {
 		var (
-			sId           int
+			sId           int64
 			sName         string
 			sDescription  string
 			sLink         string
-			ddId          int
+			ddId          int64
 			ddGrade       string
 			ddAccountName string
 			ddBalance     float64

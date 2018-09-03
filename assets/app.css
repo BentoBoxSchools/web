@@ -250,3 +250,24 @@ table tr:hover {
         flex-direction: column;
     }
 }
+
+.file-uploader {
+    height: 5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    border-radius: 3px;
+    border: 3px dashed #ccc;
+    margin-bottom: 1em;
+}
+.file-uploader.dragover {
+    background-color: #bbdefb;
+    border-color: #2196f3;
+}
+.file-uploader a {
+    margin: 0 0.3em;
+}
+.file-uploader input[type="file"] {
+    display: none;
+}
