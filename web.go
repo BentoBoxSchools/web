@@ -6,7 +6,7 @@ type School struct {
 	Name        string           `json:"name"`
 	Description string           `json:"description"`
 	Link        string           `json:"link"`
-	Data        []DonationDetail `json:"data"`
+	Data        []DonationDetail `json:"donationDetail"`
 }
 
 // DonationDetail represents individual donation detail (account, balance)
@@ -17,6 +17,12 @@ type DonationDetail struct {
 	AccountName string `json:"accountName"`
 	Balance     string `json:"balance"`
 	// Balance     float64 `json:"balance"`	// Temporarily using string
+}
+
+type User struct {
+	Email   string `json:"email"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
 }
 
 // SchoolDAO represents common business behavior to retrieve schools

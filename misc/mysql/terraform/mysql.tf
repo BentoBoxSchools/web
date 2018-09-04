@@ -3,7 +3,7 @@ variable "root_password" {}
 variable "password" {}
 
 provider "mysql" {
-  endpoint = "localhost:3306"
+  endpoint = "localhost:3307"
   username = "root"
   password = "${var.root_password}"
 }

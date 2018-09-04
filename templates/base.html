@@ -21,21 +21,26 @@
                 <div class="fill"></div>
 
                 <div class="actions">
+                    {{if not .User}}
+                    <a class="button" href="/login">
+                        Log In
+                    </a>
+                    {{else if eq .User.Email ""}}
+                    <a class="button" href="/login">
+                        Log In
+                    </a>
+                    {{else}}
+                    Hello {{.User.Name}}
+                    <a class="button" href="/logout">
+                        Logout
+                    </a>
+                    <a class="raised button" href="/schools/create">
+                        Add a new school
+                    </a>
+                    {{end}}
                     <a href="/schools" class="button raised">
                         Schools
                     </a>
-                    <!--
-                                TODO: finish this following rendering when having authentication
-                                <a class="button" href="/api/internal/login" v-if="!user">
-                                    Log In
-                                </a>
-                                <a class="button" v-if="user">
-                                    Hello user.displayName
-                                </a>
-                                <a class="__user" tag="button" to="/create" v-if="user">
-                                    Add your school
-                                </a>
-                                -->
                 </div>
             </section>
         </header>

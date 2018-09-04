@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"time"
+
+	"github.com/BentoBoxSchool/web"
+	"github.com/gorilla/sessions"
 )
 
 // RedirectGoogleLogin redirects user to google login page with redirect information
@@ -28,15 +30,9 @@ type googleExchangeToken struct {
 	ExpiresIn    int    `json:"expires_in"`
 	TokenType    string `json:"token_type"`
 }
-type googleUserInfoDTO struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Picture string `json:"picture"`
-	Email   string `json:"email"`
-}
 
 // HandleGoogleCallback takes token from request query and exchange for user information
-func HandleGoogleCallback(clientID, clientSecret, redirectURI string, emailWhitelist []string) http.HandlerFunc {
+func HandleGoogleCallback(store sessions.Store, clientID, clientSecret, redirectURI string, emailWhitelist []string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		if code == "" {
@@ -99,21 +95,26 @@ func HandleGoogleCallback(clientID, clientSecret, redirectURI string, emailWhite
 			return
 		}
 		defer res.Body.Close()
-		var userInfo googleUserInfoDTO
+		var userInfo web.User
 
 		json.NewDecoder(res.Body).Decode(&userInfo)
 
 		fmt.Printf(
-			"User %s logged in. Checking user email is withing white list...",
+			"User %s logged in. Checking user email is withing white list...\n",
 			userInfo.Email,
 		)
 		for _, whitelistedEmail := range emailWhitelist {
 			if userInfo.Email == whitelistedEmail {
 				// success
-				expiration := time.Now().Add(24 * time.Hour)
-				userJSON, _ := json.Marshal(userInfo)
-				cookie := http.Cookie{Name: "user", Value: string(userJSON), Expires: expiration}
-				http.SetCookie(w, &cookie)
+				session, err := store.Get(r, "user")
+				if err != nil {
+					fmt.Println("failed to get session store to store authenticated user information.", err)
+					break
+				}
+				session.Values["user"] = userInfo
+				if e := session.Save(r, w); e != nil {
+					fmt.Println("Failed to save session", e)
+				}
 				http.Redirect(
 					w, r,
 					"/",
@@ -130,8 +131,12 @@ func HandleGoogleCallback(clientID, clientSecret, redirectURI string, emailWhite
 }
 
 // HandleLogout invalidates the login session
-func HandleLogout() http.HandlerFunc {
+func HandleLogout(store sessions.Store) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: handle login and store user info into session?
+		session, _ := store.Get(r, "user")
+		delete(session.Values, "user")
+		session.Options.MaxAge = -1
+		_ = session.Save(r, w)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	})
 }

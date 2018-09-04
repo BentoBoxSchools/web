@@ -11,6 +11,7 @@ import (
 
 	"github.com/BentoBoxSchool/web"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
 )
 
@@ -21,10 +22,26 @@ func Assets() http.Handler {
 
 type homepageDTO struct {
 	Schools []*web.School
+	User    *web.User
+}
+
+// FIXME: probably should create a UserDAO
+func getUser(store sessions.Store, r *http.Request) *web.User {
+	user := &web.User{}
+	session, err := store.Get(r, "user")
+	if err != nil {
+		log.Println("failed to get session from request", err)
+	} else {
+		userValue := session.Values["user"]
+		if userValue != nil {
+			user = session.Values["user"].(*web.User)
+		}
+	}
+	return user
 }
 
 // RenderHomepage renders the homepage for bentobbox with a list of schools
-func RenderHomepage(dao web.SchoolDAO) http.HandlerFunc {
+func RenderHomepage(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		schools, err := dao.GetSchools()
 		if err != nil {
@@ -35,21 +52,25 @@ func RenderHomepage(dao web.SchoolDAO) http.HandlerFunc {
 		if err != nil {
 			panic(err)
 		}
+		user := getUser(store, r)
 		t.ExecuteTemplate(w, "base", homepageDTO{
 			Schools: schools,
+			User:    user,
 		})
 	})
 }
 
 type schoolListingDTO struct {
 	Schools []*web.School
+	User    *web.User
 }
 
 // RenderSchools renders a list of schools to give user general idea on what
 // schools needs donations
-func RenderSchools(dao web.SchoolDAO) http.HandlerFunc {
+func RenderSchools(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		schools, err := dao.GetSchools()
+		user := getUser(store, r)
 		if err != nil {
 			log.Println("Failed to grab schools", err)
 			schools = []*web.School{}
@@ -58,27 +79,51 @@ func RenderSchools(dao web.SchoolDAO) http.HandlerFunc {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(schools)
 		t.ExecuteTemplate(w, "base", schoolListingDTO{
 			Schools: schools,
+			User:    user,
 		})
 	})
 }
 
+type createSchoolDTO struct {
+	User *web.User
+}
+
 // RenderCreateSchool renders the login page
-func RenderCreateSchool() http.HandlerFunc {
+func RenderCreateSchool(store sessions.Store) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := getUser(store, r)
+		if user.Email == "" {
+			http.Error(
+				w,
+				"Unauthorized",
+				http.StatusUnauthorized,
+			)
+			return
+		}
 		t, err := template.ParseFiles("./templates/create.html", "./templates/base.html")
 		if err != nil {
 			panic(err)
 		}
-		t.ExecuteTemplate(w, "base", nil)
+		t.ExecuteTemplate(w, "base", createSchoolDTO{
+			User: user,
+		})
 	})
 }
 
 // HandleCSVUpload parses CSV and return JSON of the student loan detail
-func HandleCSVUpload() http.HandlerFunc {
+func HandleCSVUpload(store sessions.Store) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := getUser(store, r)
+		if user.Email == "" {
+			http.Error(
+				w,
+				"Unauthorized",
+				http.StatusUnauthorized,
+			)
+			return
+		}
 		f, _, err := r.FormFile("file")
 		if err != nil {
 			http.Error(
@@ -143,8 +188,17 @@ func HandleCSVUpload() http.HandlerFunc {
 }
 
 // HandleCreateSchool creates school from the request form body
-func HandleCreateSchool(dao web.SchoolDAO) http.HandlerFunc {
+func HandleCreateSchool(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := getUser(store, r)
+		if user.Email == "" {
+			http.Error(
+				w,
+				"Unauthorized",
+				http.StatusUnauthorized,
+			)
+			return
+		}
 		// parse JSON
 		decoder := json.NewDecoder(r.Body)
 		var s web.School
@@ -175,10 +229,11 @@ func HandleCreateSchool(dao web.SchoolDAO) http.HandlerFunc {
 
 type singleSchoolDTO struct {
 	School *web.School
+	User   *web.User
 }
 
 // RenderSchool renders individual school detail
-func RenderSchool(dao web.SchoolDAO) http.HandlerFunc {
+func RenderSchool(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("./templates/school.html", "./templates/base.html")
 		if err != nil {
@@ -210,21 +265,90 @@ func RenderSchool(dao web.SchoolDAO) http.HandlerFunc {
 }
 
 // RenderEditSchool renders the login page
-func RenderEditSchool(dao web.SchoolDAO) http.HandlerFunc {
+func RenderEditSchool(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t, err := template.ParseFiles("./templates/edit.html", "./temnplates/base.html")
+		user := getUser(store, r)
+		if user.Email == "" {
+			http.Error(
+				w,
+				"Unauthorized",
+				http.StatusUnauthorized,
+			)
+			return
+		}
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			http.Error(
+				w,
+				"Failed to grab id as int from route param",
+				http.StatusBadRequest,
+			)
+			return
+		}
+		school, err := dao.GetSchool(id)
+		if err != nil {
+			http.Error(
+				w,
+				"Cannot retrieve school from database. Please try again later.",
+				http.StatusInternalServerError,
+			)
+			return
+		}
+		t, err := template.ParseFiles("./templates/edit.html", "./templates/base.html")
 		if err != nil {
 			panic(err)
 		}
-		t.ExecuteTemplate(w, "base", nil)
+		t.ExecuteTemplate(w, "base", singleSchoolDTO{
+			School: school,
+			User:   user,
+		})
 	})
 }
 
 // HandleEditSchool edits the school by its id
-func HandleEditSchool(dao web.SchoolDAO) http.HandlerFunc {
+func HandleEditSchool(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// parse form and id
-		// call dao.EditSchool
+		user := getUser(store, r)
+		if user.Email == "" {
+			http.Error(
+				w,
+				"Unauthorized",
+				http.StatusUnauthorized,
+			)
+			return
+		}
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			http.Error(
+				w,
+				"Failed to grab id as int from route param",
+				http.StatusBadRequest,
+			)
+			return
+		}
+		// parse JSON
+		decoder := json.NewDecoder(r.Body)
+		var s web.School
+		err = decoder.Decode(&s)
+		if err != nil {
+			fmt.Println("Failed to parse JSON from request", err)
+			http.Error(
+				w,
+				"Failed to parse JSON from request body",
+				http.StatusBadRequest,
+			)
+			return
+		}
+		if err = dao.Edit(id, s); err != nil {
+			fmt.Println("Failed to edit school.", err)
+			http.Error(
+				w,
+				"Failed to edit school.",
+				http.StatusInternalServerError,
+			)
+		}
 		// return 200 or 500
 	})
 }

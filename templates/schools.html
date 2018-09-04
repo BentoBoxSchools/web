@@ -1,5 +1,6 @@
 {{define "body"}}
     <div class="top-margin container">
+        {{$user := .User}}
         {{range $id, $school := .Schools}}
             <section class="card">
                 <div class="card__header">
@@ -14,6 +15,11 @@
                     {{$school.Description}}
                 </div>
                 <div class="card__actions">
+                    {{if not (eq $user.Email "")}}
+                    <a class="raised button" href="/schools/edit/{{$school.ID}}">
+                        Edit
+                    </a>
+                    {{end}}
                     <a class="raised button" href="{{$school.Link}}">
                         Donate
                     </a>

@@ -1,7 +1,153 @@
 {{define "body"}}
     <div class="top-margin container">
-        Edit page
+        <div class="card">
+                <header class="card__header">
+                    <h2>Host a new school</h2>
+                </header>
+                <div class="card__content">
+                    <input type="hidden" name="id" id="id" value="{{.School.ID}}">
+                    <div class="input-container">
+                        <label for="name">Name:</label>
+                        <input name="name" type="text" id="name" value="{{.School.Name}}">
+                    </div>
+                    <div class="input-container">
+                        <label for="description">Description:</label>
+                        <input name="description" type="text" id="description" value="{{.School.Description}}">
+                    </div>
+                    <div class="input-container">
+                        <label for="link">Donation Link:</label>
+                        <input name="link" type="text" id="link" value="{{.School.Link}}">
+                    </div>
+                    <!-- file uploader -->
+                    <div class="input-container">
+                        <label for="">Needed Donations:</label>
+                        <div id="file_uploader" class="file-uploader">
+                            Drop or <a href="javascript:void">select</a> a CSV file
+                            <input type="file">
+                        </div>
+                    </div>
+                    <!-- school donation detail -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>
+                                    School
+                                </th>
+                                <th>
+                                    Grade
+                                </th>
+                                <th>
+                                    Account Name
+                                </th>
+                                <th>
+                                    Balance
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="donation_table_body">
+                            {{range $j, $row := .School.Data}}
+                                <tr>
+                                    <td>{{$row.School}}</td>
+                                    <td>{{$row.Grade}}</td>
+                                    <td>{{$row.AccountName}}</td>
+                                    <td>{{$row.Balance}}</td>
+                                </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card__actions">
+                <button id="create_button" class="primary">
+                    Host this school
+                </button>
+            </div>
+        </div>
     </div>
 {{end}}
 {{define "scripts"}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.4/fetch.js"></script>
+    <script>
+        var uploaderDOM = document.getElementById('file_uploader');
+        var uploaderSelectDOM = document.querySelector('#file_uploader a');
+        var fileInputDOM = document.querySelector('#file_uploader input[type="file"]');
+        var donationTableBody = document.getElementById('donation_table_body');
+        var createButtonDOM = document.getElementById('create_button');
+        var schoolDonationDetail = [];
+        {{range $j, $row := .School.Data}}
+        schoolDonationDetail.push({
+            name: '{{$row.Name}}',
+            school: '{{$row.School}}',
+            accountName: '{{$row.AccountName}}',
+            Balance: '{{$row.Balance}}'
+        });
+        {{end}}
+
+        uploaderDOM.addEventListener('dragover', function(event) {
+            event.preventDefault();
+            uploaderDOM.classList.add('dragover');
+        });
+        uploaderDOM.addEventListener('dragleave', function(event) {
+            event.preventDefault();
+            uploaderDOM.classList.remove('dragover');
+        });
+        uploaderDOM.addEventListener('drop', function(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            uploaderDOM.classList.remove('dragover');
+            var files = event.dataTransfer.files;
+            upload(files);
+        });
+        uploaderSelectDOM.addEventListener('click', function() {
+            fileInputDOM.click();
+        });
+        fileInputDOM.addEventListener('change', function(event) {
+            var files = event.target.files;
+            upload(files);
+        });
+        createButtonDOM.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var id = document.getElementById('id').value;
+            var school = {};
+            school.name = document.getElementById('name').value;
+            school.description = document.getElementById('description').value;
+            school.link = document.getElementById('link').value;
+            school.donationDetail = schoolDonationDetail;
+            console.log(school);
+            fetch('/schools/edit/' + id, {
+                method: 'POST',
+                body: JSON.stringify(school)
+            })
+            .then(function(resp) {
+                window.location = '/schools';
+            });
+        });
+
+        function upload(files) {
+            if (!files.length && files.length != 1) {
+                return;
+            }
+            var formData = new FormData();
+            // only upload single file
+            formData.append('file', files[0], files[0].name)
+            fetch('/api/csv/donation', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(resp) {
+                return resp.json();
+            })
+            .then(function(data) {
+                // handle response and render student detail
+                schoolDonationDetail = data;
+                donationTableBody.innerHTML = data.map(function(r) {
+                    return '<tr><td>' + r.school + '</td><td>' + r.grade + '</td><td>' + r.accountName + '</td><td>' + r.balance + '</td></tr>';
+                })
+                .reduce(function(a, b) {
+                    return a + b;
+                }, '');
+            });
+        }
+    </script>
 {{end}}
