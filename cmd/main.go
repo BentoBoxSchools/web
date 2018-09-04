@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/BentoBoxSchool/web/dao"
 	"github.com/BentoBoxSchool/web/handlers"
@@ -14,11 +15,15 @@ import (
 )
 
 var (
-	port       = os.Getenv("PORT")
-	dbUsername = os.Getenv("DB_USERNAME")
-	dbPassword = os.Getenv("DB_PASSWORD")
-	dbHost     = os.Getenv("DB_HOST")
-	dbName     = os.Getenv("DB_NAME")
+	port                    = os.Getenv("PORT")
+	dbUsername              = os.Getenv("DB_USERNAME")
+	dbPassword              = os.Getenv("DB_PASSWORD")
+	dbHost                  = os.Getenv("DB_HOST")
+	dbName                  = os.Getenv("DB_NAME")
+	googleClientID          = os.Getenv("GOOGLE_CLIENT_ID")
+	googleClientSecret      = os.Getenv("GOOGLE_CLIENT_SECRET")
+	googleRedirectURI       = os.Getenv("GOOGLE_REDIRECT_URI")
+	googleWhitelistedEmails = strings.Split(os.Getenv("GOOGLE_WHITE_LIST_EMAILS"), ";")
 )
 
 func main() {
@@ -35,8 +40,8 @@ func main() {
 	r.PathPrefix("/assets").Handler(handlers.Assets())
 
 	// authentication & authorization
-	r.HandleFunc("/login", handlers.RenderLogin()).Methods("GET")
-	r.HandleFunc("/login", handlers.HandleLogin()).Methods("POST")
+	r.HandleFunc("/login", handlers.RedirectGoogleLogin(googleClientID, googleRedirectURI)).Methods("GET")
+	r.HandleFunc("/google/callback", handlers.HandleGoogleCallback(googleClientID, googleClientSecret, googleRedirectURI, googleWhitelistedEmails)).Methods("GET")
 	r.HandleFunc("/logout", handlers.HandleLogout()).Methods("POST")
 
 	// schools

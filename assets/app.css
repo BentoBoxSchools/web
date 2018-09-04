@@ -25,6 +25,9 @@ h2 {
     width: 60em;
     margin: 0 auto;
 }
+.container.top-margin {
+    margin-top: 1em;
+}
 
 button,
 .button {

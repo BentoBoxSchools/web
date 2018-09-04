@@ -1,5 +1,5 @@
 {{define "body"}}
-    <div class="container">
+    <div class="top-margin container">
         {{range $id, $school := .Schools}}
             <section class="card">
                 <div class="card__header">
@@ -14,10 +14,7 @@
                     {{$school.Description}}
                 </div>
                 <div class="card__actions">
-                    <a href="/schools/{{$school.ID}}">
-                        Detail
-                    </a>
-                    <a href="{{$school.Link}}">
+                    <a class="raised button" href="{{$school.Link}}">
                         Donate
                     </a>
                 </div>

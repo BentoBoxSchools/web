@@ -7,8 +7,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/BentoBoxSchool/web"
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 )
 
@@ -171,6 +173,10 @@ func HandleCreateSchool(dao web.SchoolDAO) http.HandlerFunc {
 	})
 }
 
+type singleSchoolDTO struct {
+	School *web.School
+}
+
 // RenderSchool renders individual school detail
 func RenderSchool(dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -178,7 +184,28 @@ func RenderSchool(dao web.SchoolDAO) http.HandlerFunc {
 		if err != nil {
 			panic(err)
 		}
-		t.ExecuteTemplate(w, "base", nil)
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			http.Error(
+				w,
+				"Failed to grab id as int from route param",
+				http.StatusBadRequest,
+			)
+			return
+		}
+		school, err := dao.GetSchool(id)
+		if err != nil {
+			http.Error(
+				w,
+				"Cannot retrieve school from database. Please try again later.",
+				http.StatusInternalServerError,
+			)
+			return
+		}
+		t.ExecuteTemplate(w, "base", singleSchoolDTO{
+			School: school,
+		})
 	})
 }
 

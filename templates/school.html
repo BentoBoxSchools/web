@@ -1,6 +1,19 @@
 {{define "body"}}
-    <div>
-        Schools
+    <div class="top-margin container">
+        <div class="card">
+                <header class="card__header">
+                    <h2>{{.School.Name}}</h2>
+                </header>
+                <div class="card__content">
+                    {{.School.Description}}
+                </div>
+            </div>
+            <div class="card__actions">
+                <a class="raised button" href="{{.School.Link}}">
+                    Donate
+                </a>
+            </div>
+        </div>
     </div>
 {{end}}
 {{define "scripts"}}
