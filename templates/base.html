@@ -30,9 +30,8 @@
                         Log In
                     </a>
                     {{else}}
-                    Hello {{.User.Name}}
                     <a class="button" href="/logout">
-                        Logout
+                        Log Out for {{.User.Name}}
                     </a>
                     <a class="raised button" href="/schools/create">
                         Add a new school

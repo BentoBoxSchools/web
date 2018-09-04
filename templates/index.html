@@ -5,24 +5,6 @@
             <h2>Thousands of kids in American schools have unpaid school lunch balances.</h2>
             <h2>Help ease the burden for these students and their families.</h2>
         </section>
-
-        <div class="container">
-            <section class="card">
-                <div class="card__header">
-                    <h2>Schools around you</h2>
-                </div>
-                <div class="card__media">
-                    <div id="map"></div>
-                </div>
-            </section>
-        </div>
-        <div class="flex column container">
-            <div class="card">
-                <div class="card__content">
-                    <a class="twitter-timeline" href="https://twitter.com/bentoboxschools?ref_src=twsrc%5Etfw">Tweets by bentoboxschools</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
-                </div>
-            </div>
-        </div>
         <div class="flex row container">
             <div class="main card">
                 <div class="card__header">
@@ -77,10 +59,53 @@
                 </div>
             </div>
         </div>
+        <!-- <div class="container">
+            <section class="card">
+                <div class="card__header">
+                    <h2>Schools around you</h2>
+                </div>
+                <div class="card__media">
+                    <div id="map"></div>
+                </div>
+            </section>
+        </div> -->
+        <div class="container">
+            <section class="card">
+                <div class="card__header">
+                    <h2>Schools need your donation</h2>
+                </div>
+                <div class="card__media school-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name of school</th>
+                                <th class="number">Total number of students with debt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {{range $id, $school := .Schools}}
+                            <tr>
+                                <td><a href="/schools/{{$school.ID}}">{{$school.Name}}</a></td>
+                                <td class="number">{{len $school.Data}}</td>
+                            </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div class="flex column container">
+            <div class="card">
+                <div class="card__content">
+                    <a class="twitter-timeline" href="https://twitter.com/bentoboxschools?ref_src=twsrc%5Etfw">Tweets by bentoboxschools</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
+                </div>
+            </div>
+        </div>
     </div>
 {{end}}
 {{define "scripts"}}
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCNsW5TODUbmv2K_0pswqz_P09-e6YeY8s"></script>
+    <!--
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAprRLuJENJKC2Zgyt3T7v7T2NDNCWtkw"></script>
     <script>
         // TODO: make a GET request to get a list of school and their geo location
         //       and show them under google map around user
@@ -94,5 +119,6 @@
         center: uluru
         });
     </script>
+    -->
 {{end}}
 

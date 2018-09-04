@@ -61,7 +61,7 @@ func main() {
 	r.HandleFunc("/schools/{id}", handlers.RenderSchool(store, schoolDAO)).Methods("GET")
 	r.HandleFunc("/schools/edit/{id}", handlers.RenderEditSchool(store, schoolDAO)).Methods("GET")
 	r.HandleFunc("/schools/create", handlers.HandleCreateSchool(store, schoolDAO)).Methods("POST")
-	r.HandleFunc("/schools/edit/{id}", handlers.RenderHomepage(store, schoolDAO)).Methods("POST")
+	r.HandleFunc("/schools/edit/{id}", handlers.HandleEditSchool(store, schoolDAO)).Methods("POST")
 	r.HandleFunc("/api/csv/donation", handlers.HandleCSVUpload(store)).Methods("POST")
 
 	log.Printf("Running web server at port %s\n", port)

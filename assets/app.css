@@ -274,3 +274,14 @@ table tr:hover {
 .file-uploader input[type="file"] {
     display: none;
 }
+
+.school-list {
+    padding: 1em;
+}
+table td.number,
+table th.number {
+    text-align: right;
+}
+table th {
+    text-align: left;
+}

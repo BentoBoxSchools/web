@@ -235,6 +235,7 @@ type singleSchoolDTO struct {
 // RenderSchool renders individual school detail
 func RenderSchool(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := getUser(store, r)
 		t, err := template.ParseFiles("./templates/school.html", "./templates/base.html")
 		if err != nil {
 			panic(err)
@@ -260,6 +261,7 @@ func RenderSchool(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc {
 		}
 		t.ExecuteTemplate(w, "base", singleSchoolDTO{
 			School: school,
+			User:   user,
 		})
 	})
 }
@@ -349,6 +351,7 @@ func HandleEditSchool(store sessions.Store, dao web.SchoolDAO) http.HandlerFunc 
 				http.StatusInternalServerError,
 			)
 		}
+		fmt.Println("Edit school", id, s)
 		// return 200 or 500
 	})
 }

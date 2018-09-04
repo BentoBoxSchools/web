@@ -1,12 +1,40 @@
 {{define "body"}}
     <div class="top-margin container">
         <div class="card">
-                <header class="card__header">
-                    <h2>{{.School.Name}}</h2>
-                </header>
-                <div class="card__content">
-                    {{.School.Description}}
-                </div>
+            <header class="card__header">
+                <h2>{{.School.Name}}</h2>
+            </header>
+            <div class="card__content">
+                <p>{{.School.Description}}</p>
+                <h3>Students with debt</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                School
+                            </th>
+                            <th>
+                                Grade
+                            </th>
+                            <th>
+                                Account Name
+                            </th>
+                            <th>
+                                Balance
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="donation_table_body">
+                        {{range $j, $row := .School.Data}}
+                        <tr>
+                            <td>{{$row.School}}</td>
+                            <td>{{$row.Grade}}</td>
+                            <td>{{$row.AccountName}}</td>
+                            <td>{{$row.Balance}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
             </div>
             <div class="card__actions">
                 <a class="raised button" href="{{.School.Link}}">

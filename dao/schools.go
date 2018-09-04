@@ -197,8 +197,8 @@ func (s *SchoolDAOImpl) Update(school web.School) error {
 	}()
 
 	stmt, err := s.db.Prepare(`
-		UPDATE school(name, description, link)
-		VALUES(?, ?, ?)
+		UPDATE school
+		SET name=?, description=?, link=?
 		WHERE id=?
 	`)
 	if err != nil {
@@ -212,8 +212,8 @@ func (s *SchoolDAOImpl) Update(school web.School) error {
 
 	for _, dd := range school.Data {
 		stmt, err := s.db.Prepare(`
-			UPDATE donation_detail(school_id, grade, account_name, balance)
-			VALUES(?, ?, ?, ?)
+			UPDATE donation_detail
+			SET school_id=?, grade=?, account_name=?, balance=?
 			WHERE id=?
 		`)
 		if err != nil {
@@ -227,5 +227,6 @@ func (s *SchoolDAOImpl) Update(school web.School) error {
 }
 
 func (s *SchoolDAOImpl) Edit(id int64, school web.School) error {
-	return nil
+	school.ID = id
+	return s.Update(school)
 }

@@ -46,16 +46,15 @@
                         </thead>
                         <tbody id="donation_table_body">
                             {{range $j, $row := .School.Data}}
-                                <tr>
-                                    <td>{{$row.School}}</td>
-                                    <td>{{$row.Grade}}</td>
-                                    <td>{{$row.AccountName}}</td>
-                                    <td>{{$row.Balance}}</td>
-                                </tr>
+                            <tr>
+                                <td>{{$row.School}}</td>
+                                <td>{{$row.Grade}}</td>
+                                <td>{{$row.AccountName}}</td>
+                                <td>{{$row.Balance}}</td>
+                            </tr>
                             {{end}}
                         </tbody>
                     </table>
-                </div>
             </div>
             <div class="card__actions">
                 <button id="create_button" class="primary">
@@ -76,8 +75,8 @@
         var schoolDonationDetail = [];
         {{range $j, $row := .School.Data}}
         schoolDonationDetail.push({
-            name: '{{$row.Name}}',
             school: '{{$row.School}}',
+            grade: '{{$row.Grade}}',
             accountName: '{{$row.AccountName}}',
             Balance: '{{$row.Balance}}'
         });
