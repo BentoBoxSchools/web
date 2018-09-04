@@ -1,3 +1,4 @@
 .terraform
 plan.out
 *.tfstate
+run_tf_prod.sh

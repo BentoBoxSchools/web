@@ -1,13 +1,17 @@
+variable "env" {}
+variable "root_password" {}
+variable "password" {}
+
 provider "mysql" {
   endpoint = "localhost:3306"
   username = "root"
-  password = "root"
+  password = "${var.root_password}"
 }
 
 resource "mysql_user" "web" {
   user               = "web"
-  host               = "172.17.0.1"
-  plaintext_password = "web"
+  host               = "${var.env == "dev" ? "172.17.0.1" : "localhost"}"
+  plaintext_password = "${var.password}"
 }
 
 resource "mysql_database" "web" {
