@@ -38,7 +38,7 @@ func init() {
 
 func main() {
 	db := getDB()
-	schoolDAO := dao.New(sqlDB)
+	schoolDAO := dao.New(db)
 	r := makeRouter(db, schoolDAO)
 
 	log.Printf("Running web server at port %s\n", port)
@@ -50,7 +50,7 @@ func makeRouter(db *sql.DB, dao *dao.SchoolDAOImpl) *mux.Router {
 
 	// Ops end points
 	r.HandleFunc("/hello", handlers.Hello()).Methods("GET")
-	r.HandleFunc("/health", handlers.CheckHealth(sqlDB)).Methods("GET")
+	r.HandleFunc("/health", handlers.CheckHealth(db)).Methods("GET")
 
 	// renders javascript and css under "/assets"
 	r.PathPrefix("/assets").Handler(handlers.Assets())
