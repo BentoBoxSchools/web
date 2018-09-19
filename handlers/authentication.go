@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/BentoBoxSchool/web"
+	"github.com/BentoBoxSchools/web"
 	"github.com/gorilla/sessions"
 )
 

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/BentoBoxSchool/web"
+	"github.com/BentoBoxSchools/web"
 )
 
 // SchoolDAOImpl implements dao to interact with MySQL

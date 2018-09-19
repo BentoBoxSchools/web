@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/BentoBoxSchool/web"
-	"github.com/BentoBoxSchool/web/dao"
-	"github.com/BentoBoxSchool/web/handlers"
+	"github.com/BentoBoxSchools/web"
+	"github.com/BentoBoxSchools/web/dao"
+	"github.com/BentoBoxSchools/web/handlers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
