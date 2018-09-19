@@ -37,10 +37,16 @@ func init() {
 }
 
 func main() {
-	r := mux.NewRouter()
-	sqlDB := getDB()
-
+	db := getDB()
 	schoolDAO := dao.New(sqlDB)
+	r := makeRouter(db, schoolDAO)
+
+	log.Printf("Running web server at port %s\n", port)
+	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
+}
+
+func makeRouter(db *sql.DB, dao *dao.SchoolDAOImpl) *mux.Router {
+	r := mux.NewRouter()
 
 	// Ops end points
 	r.HandleFunc("/hello", handlers.Hello()).Methods("GET")
@@ -55,17 +61,16 @@ func main() {
 	r.HandleFunc("/logout", handlers.HandleLogout(store)).Methods("GET")
 
 	// schools
-	r.HandleFunc("/", handlers.RenderHomepage(store, schoolDAO)).Methods("GET")
-	r.HandleFunc("/schools", handlers.RenderSchools(store, schoolDAO)).Methods("GET")
+	r.HandleFunc("/", handlers.RenderHomepage(store, dao)).Methods("GET")
+	r.HandleFunc("/schools", handlers.RenderSchools(store, dao)).Methods("GET")
 	r.HandleFunc("/schools/create", handlers.RenderCreateSchool(store)).Methods("GET")
-	r.HandleFunc("/schools/{id}", handlers.RenderSchool(store, schoolDAO)).Methods("GET")
-	r.HandleFunc("/schools/edit/{id}", handlers.RenderEditSchool(store, schoolDAO)).Methods("GET")
-	r.HandleFunc("/schools/create", handlers.HandleCreateSchool(store, schoolDAO)).Methods("POST")
-	r.HandleFunc("/schools/edit/{id}", handlers.HandleEditSchool(store, schoolDAO)).Methods("POST")
+	r.HandleFunc("/schools/{id}", handlers.RenderSchool(store, dao)).Methods("GET")
+	r.HandleFunc("/schools/edit/{id}", handlers.RenderEditSchool(store, dao)).Methods("GET")
+	r.HandleFunc("/schools/create", handlers.HandleCreateSchool(store, dao)).Methods("POST")
+	r.HandleFunc("/schools/edit/{id}", handlers.HandleEditSchool(store, dao)).Methods("POST")
 	r.HandleFunc("/api/csv/donation", handlers.HandleCSVUpload(store)).Methods("POST")
 
-	log.Printf("Running web server at port %s\n", port)
-	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
+	return r
 }
 
 func getDB() *sql.DB {
