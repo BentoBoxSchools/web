@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,6 +18,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 var (
@@ -34,15 +38,6 @@ var store = sessions.NewCookieStore([]byte(sessionSecret))
 
 func init() {
 	gob.Register(&web.User{})
-}
-
-func main() {
-	db := getDB()
-	schoolDAO := dao.New(db)
-	r := makeRouter(db, schoolDAO)
-
-	log.Printf("Running web server at port %s\n", port)
-	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
 }
 
 func makeRouter(db *sql.DB, dao *dao.SchoolDAOImpl) *mux.Router {
@@ -93,4 +88,69 @@ func getDB() *sql.DB {
 	}
 
 	return db
+}
+
+func makeAutocertManager() *autocert.Manager {
+	return &autocert.Manager{
+		Prompt: autocert.AcceptTOS,
+		Cache:  autocert.DirCache("."),
+		HostPolicy: func(ctx context.Context, host string) error {
+			if host == "bentoboxschools.com" {
+				return nil
+			}
+			return fmt.Errorf("host policy '%s' violated; only 'bentoboxschools.com' is allowed", host)
+		},
+	}
+}
+
+func runHTTPSServer(r *mux.Router, m *autocert.Manager) {
+	plain := &http.Server{
+		Addr:    ":80",
+		Handler: m.HTTPHandler(nil),
+	}
+	go func() {
+		log.Println("started plain traffic listener on port 80")
+		if err := plain.ListenAndServe(); err != nil {
+			log.Println("an error occurred with the plain traffic listener on port 80", err)
+		}
+	}()
+
+	secure := &http.Server{
+		Addr:    ":443",
+		Handler: r,
+		TLSConfig: &tls.Config{
+			GetCertificate: m.GetCertificate,
+		},
+	}
+
+	log.Println("started secure traffic listener on port 443")
+	if err := secure.ListenAndServeTLS("", ""); err != nil {
+		log.Println("an error occurred with the secure traffic listener of port 443", err)
+	}
+}
+
+func runHTTPServer(r *mux.Router) {
+	s := &http.Server{
+		Addr:    ":80",
+		Handler: r,
+	}
+
+	log.Println("started plain traffic listener on port 80")
+	if err := s.ListenAndServe(); err != nil {
+		log.Println("an error occurred with the plain traffic listener on port 80", err)
+	}
+}
+
+func main() {
+	db := getDB()
+	schoolDAO := dao.New(db)
+	r := makeRouter(db, schoolDAO)
+
+	production := *flag.Bool("production", false, "Enables HTTPS traffic on port 443 (HTTP requests on port 80 are redirected in this mode)")
+	if production {
+		m := makeAutocertManager()
+		runHTTPSServer(r, m)
+	} else {
+		runHTTPServer(r)
+	}
 }
