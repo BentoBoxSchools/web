@@ -146,8 +146,10 @@ func main() {
 	schoolDAO := dao.New(db)
 	r := makeRouter(db, schoolDAO)
 
-	production := *flag.Bool("production", false, "Enables HTTPS traffic on port 443 (HTTP requests on port 80 are redirected in this mode)")
-	if production {
+	prod := flag.Bool("prod", false, "Enables HTTPS traffic on port 443 (HTTP requests on port 80 are redirected in this mode)")
+	flag.Parse()
+
+	if *prod {
 		m := makeAutocertManager()
 		runHTTPSServer(r, m)
 	} else {
