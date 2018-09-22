@@ -131,13 +131,13 @@ func runHTTPSServer(r *mux.Router, m *autocert.Manager) {
 
 func runHTTPServer(r *mux.Router) {
 	s := &http.Server{
-		Addr:    ":80",
+		Addr:    ":" + port,
 		Handler: r,
 	}
 
-	log.Println("started plain traffic listener on port 80")
+	log.Printf("started plain traffic listener on port %s\n", port)
 	if err := s.ListenAndServe(); err != nil {
-		log.Println("an error occurred with the plain traffic listener on port 80", err)
+		log.Printf("an error occurred with the plain traffic listener on port %d\n%s\n", port, err)
 	}
 }
 
