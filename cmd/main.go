@@ -137,7 +137,7 @@ func runHTTPServer(r *mux.Router) {
 
 	log.Printf("started plain traffic listener on port %s\n", port)
 	if err := s.ListenAndServe(); err != nil {
-		log.Printf("an error occurred with the plain traffic listener on port %d\n%s\n", port, err)
+		log.Printf("an error occurred with the plain traffic listener on port %s\n%s\n", port, err)
 	}
 }
 
