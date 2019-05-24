@@ -13,3 +13,9 @@
 
 .DS_Store
 deploy_prod.sh
+
+# vim swap files
+*.swp
+
+# generated bin folder
+bin/

@@ -2,6 +2,18 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:a8fc4c8416603436b7e81a742aa82dc9ddff9d20dd97f48dd0c433f67485473b"
+  name = "github.com/BentoBoxSchools/web"
+  packages = [
+    ".",
+    "dao",
+    "handlers",
+  ]
+  pruneopts = "UT"
+  revision = "e150c3fc30159d6330040c05f892f56cda288881"
+
+[[projects]]
   digest = "1:adea5a94903eb4384abef30f3d878dc9ff6b6b5b0722da25b82e5169216dfb61"
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
@@ -72,6 +84,9 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/BentoBoxSchools/web",
+    "github.com/BentoBoxSchools/web/dao",
+    "github.com/BentoBoxSchools/web/handlers",
     "github.com/go-sql-driver/mysql",
     "github.com/gorilla/mux",
     "github.com/gorilla/sessions",
